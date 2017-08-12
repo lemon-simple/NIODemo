@@ -13,14 +13,11 @@ public class NIOClient {
 
     /* 标识数字 */
     private static int flag = 0;
-
     /* 缓冲区大小 */
     private static int BLOCK = 4096;
-
     /* 接受数据缓冲区 */
     private static ByteBuffer sendbuffer = ByteBuffer.allocate(BLOCK);// 4KB;
     /* 发送数据缓冲区 */
-
     private static ByteBuffer receivebuffer = ByteBuffer.allocate(BLOCK);
 
     /* 服务器端地址 */
@@ -73,13 +70,15 @@ public class NIOClient {
             while (iterator.hasNext()) {
                 selectionKey = iterator.next();
                 if (selectionKey.isConnectable()) {
-                    System.out.println("client connect");
+                    System.out.println(" this is connectable !");
+                    //通过selectKey可以获取到对应的channel和selector
+                   //selectionKey.selector()
                     client = (SocketChannel) selectionKey.channel();
+                    
+                    System.err.println(client == socketChannel);
                     // 异步连接操作，如 connect() read() write()
                     // 即使没有建立连接也会立刻返回，使用socketChannel.finishConnect()检查连接建立是否成功,未成功会抛出异常
-                    if (client.isConnectionPending()) {
-                        client.finishConnect();
-                        client.finishConnect();
+                    if (client.isConnectionPending() && client.finishConnect()) {
                         System.out.println("完成连接!");
                         sendbuffer.clear();
                         sendbuffer.put("Hello,Server".getBytes());
@@ -96,7 +95,7 @@ public class NIOClient {
                     if (count > 0) {
                         receiveText = new String(receivebuffer.array(), 0, count);
                         System.out.println("客户端接受服务器端数据--:" + receiveText);
-                        client.register(selector, SelectionKey.OP_WRITE);
+                        client.register(selector, SelectionKey.OP_WRITE);// 读取后接着注册一个可写事件，为了向服务端发消息
                     }
 
                 } else if (selectionKey.isWritable()) {
@@ -111,7 +110,7 @@ public class NIOClient {
                                                   // write(),什么都没写入也会返回，所以循环使用
                     }
                     System.out.println("客户端向服务器端发送数据--：" + sendText);
-                    client.register(selector, SelectionKey.OP_READ);
+                    client.register(selector, SelectionKey.OP_READ);// 向服务端发送消息后，注册一个可读事件，当服务端再次返回消息时，这个事件将ready
                 }
             }
             selectionKeys.clear();
