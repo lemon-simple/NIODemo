@@ -1,4 +1,4 @@
-package nia.chapter2.echoclient;
+package com.zs.nio.echoclient;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
@@ -9,6 +9,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
 import java.net.InetSocketAddress;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Listing 2.4 Main class for the client
@@ -26,7 +27,7 @@ public class EchoClient {
     }
 
     public void start() throws Exception {
-        EventLoopGroup group = new NioEventLoopGroup();
+        EventLoopGroup group = new NioEventLoopGroup(1);
         try {
             Bootstrap b = new Bootstrap();
             b.group(group).channel(NioSocketChannel.class).remoteAddress(new InetSocketAddress(host, port))
@@ -37,8 +38,13 @@ public class EchoClient {
 
                         }
                     });
-            ChannelFuture f = b.connect().sync();
-            f.channel().closeFuture().sync();
+            for (int i = 0; i < 10; i++) {
+                ChannelFuture f = b.connect().sync();
+
+                TimeUnit.SECONDS.sleep(2);
+
+                f.channel().closeFuture().sync();
+            }
         } finally {
             group.shutdownGracefully().sync();
         }

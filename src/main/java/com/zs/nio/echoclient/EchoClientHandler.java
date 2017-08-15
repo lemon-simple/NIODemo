@@ -1,4 +1,4 @@
-package nia.chapter2.echoclient;
+package com.zs.nio.echoclient;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;

@@ -1,4 +1,4 @@
-package nia.chapter2.echoserver;
+package com.zs.nio.echoserver;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
