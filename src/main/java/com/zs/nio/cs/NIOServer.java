@@ -15,13 +15,18 @@ public class NIOServer {
 
     /* 标识数字 */
     private int flag = 0;
+
     /* 缓冲区大小 */
     private int BLOCK = 4096;
+
     /* 接受数据缓冲区 */
     private ByteBuffer sendbuffer = ByteBuffer.allocate(BLOCK);// 4KB
     /* 发送数据缓冲区 */
+
     private ByteBuffer receivebuffer = ByteBuffer.allocate(BLOCK);// 4KB
+
     private Selector selector;
+
     ServerSocketChannel serverSocketChannelTemp;
 
     public NIOServer(int port) throws IOException {
@@ -108,9 +113,7 @@ public class NIOServer {
             // It returns only after at least one channel is selected, this
             // selector's wakeup method is invoked, or the current thread is
             // interrupted, whichever comes first.
-            if (selector.select() <= 0) {// Selector.select()就是检查是否有注册的兴趣事件中已经准备好了的事件！注意.这里返回的是处于ready状态的事件对应的channel数量
-                continue;
-            }
+            selector.select(); // Selector.select()就是检查是否有注册的兴趣事件中已经准备好了的事件！注意.这里返回的是处于ready状态的事件对应的channel数量
 
             // 执行完selector.select(),会暗示你是否有准备好的channel，
             // 接着执行 Set<SelectionKey> selectionKeys = selector.selectedKeys();
@@ -128,6 +131,7 @@ public class NIOServer {
             System.out.println("iterator size" + i);
         }
     }
+
     /**
      * 通过selectKey可以获取到对应的channel和selector (selectionKey.selector())
      * @param selectionKey
@@ -191,6 +195,7 @@ public class NIOServer {
             client.register(selector, SelectionKey.OP_READ);// 向客户端发送消息后，注册一个可读事件，当客户端再次发送消息时，这个事件将ready
         }
     }
+
     public static void main(String[] args) throws IOException {
         int port = 8989;
         NIOServer server = new NIOServer(port);

@@ -1,66 +1,78 @@
 package com.zs.io.cs;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 /**
- * 1.ServerSocket 上的 accept()方法将会一直阻塞直到一个连接建立 ，随后返回一个 新的 Socket 用于客户端和服务器之间的通信。
  * 
- * 2. 该 ServerSocket 将继续监听请求的其他socket连接。
- * 
+ * @author zhangsh
+ *
  */
 public class IOServer {
 
-    private static final int port = 9091;
+    public static void main(String[] args) {
 
-    public static void main(String[] args) throws IOException, InterruptedException {
-
-        ServerSocket serverSocket = new ServerSocket(port);
-        ExecutorService ex = null;
-        while (!Thread.currentThread().isInterrupted()) {
-            Socket socket = serverSocket.accept();
-            System.out.println("server connnected:   socket  accepted   " + socket);
-            ex = Executors.newFixedThreadPool(10);
-            ex.execute(getTask(socket));
+        ExecutorService ex = Executors.newFixedThreadPool(10);
+        int i = 0;
+        ServerSocket serverSocket = null;
+        try {
+            serverSocket = new ServerSocket(9091);
+        } catch (IOException e1) {
+            e1.printStackTrace();
         }
-        ex.shutdown();
-        serverSocket.close();
+        try {
+            while (true) {
+                Socket clientSocket = serverSocket.accept();// 阻塞等待,直到有客户端接入
+
+                System.out.println("new Client connected :[" + clientSocket + "]" + i++);
+
+                ex.execute(getTask(clientSocket));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
-    static Runnable getTask(Socket socket) {
+    private static Runnable getTask(Socket clientSocket) {
         return new Runnable() {
+
             @Override
             public void run() {
-                int i = 0;
-                BufferedWriter writer = null;
-                try {
-                    writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-                    while (!Thread.currentThread().isInterrupted()) {
-                        writer.write(i++ + "hello client \n");
-                        writer.flush();
-                        TimeUnit.SECONDS.sleep(6);
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } finally {
-                    try {
-                        if (null != writer)
-                            writer.close();
-                        if (null != socket)
-                            socket.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
+                assmbleTaskWithClient(clientSocket);
             }
         };
     }
+
+    /**
+     * @param clientSocket
+     * @throws IOException
+     */
+    private static void assmbleTaskWithClient(Socket clientSocket) {
+        BufferedReader reader;
+        try {
+            reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
+            String lineStr;
+            writer.write("hi,client! \r\n");
+            writer.flush();
+
+            StringBuffer responseStr = new StringBuffer();
+            while (null != (lineStr = reader.readLine())) {
+                responseStr.append(lineStr);
+                System.out.println("received from client:[" + clientSocket + "],msg:[" + responseStr.toString() + "]");
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 }

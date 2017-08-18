@@ -13,11 +13,14 @@ public class NIOClient {
 
     /* 标识数字 */
     private static int flag = 0;
+
     /* 缓冲区大小 */
     private static int BLOCK = 4096;
+
     /* 接受数据缓冲区 */
     private static ByteBuffer sendbuffer = ByteBuffer.allocate(BLOCK);// 4KB;
     /* 发送数据缓冲区 */
+
     private static ByteBuffer receivebuffer = ByteBuffer.allocate(BLOCK);
 
     /* 服务器端地址 */
@@ -39,11 +42,11 @@ public class NIOClient {
         socketChannel.configureBlocking(false);
         // 打开选择器
         Selector selector = Selector.open();
+        socketChannel.connect(SERVER_ADDRESS);
         // 注册连接服务端socket动作
         socketChannel.register(selector, SelectionKey.OP_CONNECT);
         // 异步连接操作，如 connect() read() write()
         // 即使没有建立连接也会立刻返回，使用socketChannel.finishConnect()检查连接建立是否成功,未成功会抛出异常
-        socketChannel.connect(SERVER_ADDRESS);
         // 分配缓冲区大小内存
 
         Set<SelectionKey> selectionKeys;
@@ -71,10 +74,10 @@ public class NIOClient {
                 selectionKey = iterator.next();
                 if (selectionKey.isConnectable()) {
                     System.out.println(" this is connectable !");
-                    //通过selectKey可以获取到对应的channel和selector
-                   //selectionKey.selector()
+                    // 通过selectKey可以获取到对应的channel和selector
+                    // selectionKey.selector()
                     client = (SocketChannel) selectionKey.channel();
-                    
+
                     System.err.println(client == socketChannel);
                     // 异步连接操作，如 connect() read() write()
                     // 即使没有建立连接也会立刻返回，使用socketChannel.finishConnect()检查连接建立是否成功,未成功会抛出异常

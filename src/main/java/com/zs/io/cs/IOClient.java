@@ -1,8 +1,8 @@
 package com.zs.io.cs;
 
-import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -11,48 +11,60 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 public class IOClient {
-    private static final int port = 9091;
+    public static void main(String[] args) throws UnknownHostException, IOException {
 
-    private static final int ClientNumber = 3;
+        ExecutorService ex = Executors.newFixedThreadPool(10);
 
-    public static void main(String[] args) throws UnknownHostException, IOException, InterruptedException {
-        ExecutorService ex = Executors.newFixedThreadPool(ClientNumber);
-        for (int i = 0; i < ClientNumber; i++) {
-            ex.execute(getTask());
-        }
+        Socket clientSocket = new Socket();
+        clientSocket.connect(new InetSocketAddress("localhost", 9091));
+
+        System.out.println("connected client:[" + clientSocket + "]");
+
+        ex.execute(getTask(clientSocket));
+    }
+
+    private static Runnable getTask(Socket clientSocket) {
+        return new Runnable() {
+
+            public void run() {
+                assmbleTaskWithClient(clientSocket);
+            }
+        };
     }
 
     /**
+     * @param clientSocket
      * @throws IOException
-     * @throws InterruptedException
      */
-    private static Runnable getTask() {
-        return new Runnable() {
-            @Override
-            public void run() {
-                Socket client = new Socket();
+    private static void assmbleTaskWithClient(Socket clientSocket) {
+        try {
+            // BufferedReader reader = new BufferedReader(new
+            // InputStreamReader(clientSocket.getInputStream()));
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
+
+            for (int i = 0; i < 10; i++) {
+                writer.write("hi server! \r\n");
+                writer.flush();
+
                 try {
-                    client.connect(new InetSocketAddress("localhost", port));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                System.out.println("client connected" + client);
-                int i = 0;
-                String msg = null;
-                try {
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(client.getInputStream()));
-                    while (!Thread.currentThread().isInterrupted()) {
-                        msg = reader.readLine();
-                        TimeUnit.SECONDS.sleep(5);
-                        client.close();
-                        System.out.println("i" + i++ + "msg[" + msg + "]");
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
+                    TimeUnit.SECONDS.sleep(3);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
-        };
+
+            // String lineStr;
+            // StringBuffer responseStr = new StringBuffer();
+            //
+            // while (null != (lineStr = reader.readLine())) {
+            // responseStr.append(lineStr);
+            // System.out.println("received from server:[" + clientSocket +
+            // "],msg:[" + responseStr.toString() + "] ");
+            // }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
+
 }

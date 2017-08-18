@@ -1,4 +1,4 @@
-package com.zs.nio;
+package com.zs.nio.scatterAndGather;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
