@@ -23,7 +23,7 @@ public class IOClient {
         ex.execute(getTask(clientSocket));
     }
 
-    private static Runnable getTask(Socket clientSocket) {
+    private static Runnable getTask(final Socket clientSocket) {
         return new Runnable() {
 
             public void run() {

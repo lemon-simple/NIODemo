@@ -41,7 +41,7 @@ public class IOServer {
 
     }
 
-    private static Runnable getTask(Socket clientSocket) {
+    private static Runnable getTask(final Socket clientSocket) {
         return new Runnable() {
 
             @Override

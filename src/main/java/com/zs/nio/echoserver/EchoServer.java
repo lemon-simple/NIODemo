@@ -1,14 +1,16 @@
 package com.zs.nio.echoserver;
 
+import java.net.InetSocketAddress;
+
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-
-import java.net.InetSocketAddress;
 
 public class EchoServer {
     private final int port;
@@ -28,13 +30,14 @@ public class EchoServer {
     }
 
     public void start() throws Exception {
-        final EchoServerHandler serverHandler = new EchoServerHandler();
         // 1.创建EventLoopGroup:指定了 NioEventLoopGroup 来接受和处理新的连接
-        EventLoopGroup group = new NioEventLoopGroup();
+        EventLoopGroup acceptor = new NioEventLoopGroup(1);
+        EventLoopGroup worker = new NioEventLoopGroup(1);
+
         try {
             ServerBootstrap b = new ServerBootstrap();// 2.创建ServerBootstrap
             // 3.指定所使用的NIO传输 Channel,并且将 Channel 的类型指定为 NioServerSocketChannel
-            b.group(group).channel(NioServerSocketChannel.class)
+            b.group(acceptor, worker).channel(NioServerSocketChannel.class)
                     // 4.使用指定的 端口设置套 接字地址:服务器将绑定到这个地址以监听新的连接请求。
                     .localAddress(new InetSocketAddress(port))
                     // 5.添加一个 EchoServerHandler 到子 Channel 的 ChannelPipeline
@@ -45,7 +48,7 @@ public class EchoServer {
                         // EchoServerHandler 的实例添加到该 Channel 的 ChannelPipeline 中
                         @Override
                         public void initChannel(SocketChannel ch) throws Exception {
-                            ch.pipeline().addLast(serverHandler);
+                            ch.pipeline().addLast(new SimpleServerHandler());
                         }
                     });
 
@@ -55,8 +58,26 @@ public class EchoServer {
                     + f.channel().localAddress());
             f.channel().closeFuture().sync();// 7.获取这个channel的closeFuture,并且阻塞当前线程直到它完成channel关闭
         } finally {
-            group.shutdownGracefully().sync();// 8.关闭 EventLoopGroup,释放所有的资源
+            acceptor.shutdownGracefully().sync();// 8.关闭 EventLoopGroup,释放所有的资源
+            worker.shutdownGracefully().sync();
 
+        }
+    }
+
+    private static class SimpleServerHandler extends ChannelInboundHandlerAdapter {
+        @Override
+        public void channelActive(ChannelHandlerContext ctx) throws Exception {
+            System.out.println("channelActive");
+        }
+
+        @Override
+        public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
+            System.out.println("channelRegistered");
+        }
+
+        @Override
+        public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
+            System.out.println("handlerAdded");
         }
     }
 }

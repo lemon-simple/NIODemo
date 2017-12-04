@@ -14,7 +14,7 @@ public class NIOClientTest {
     private static ByteBuffer readFromChannel = ByteBuffer.allocate(11);
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        Selector selector = Selector.open();
+        final Selector selector = Selector.open();
 
         new Thread(new Runnable() {
 

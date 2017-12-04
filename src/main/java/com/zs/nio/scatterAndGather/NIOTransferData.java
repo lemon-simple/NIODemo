@@ -12,8 +12,13 @@ import java.nio.channels.FileChannel;
 public class NIOTransferData {
 
     public static void main(String[] args) throws IOException {
-        System.out.println(1 << 2);
-        transferData();
+        // System.out.println(1 << 2);
+        // transferData();
+
+        for (;;) {
+            System.out.println(1 << 2);
+            transferData();
+        }
     }
 
     public static void transferData() throws IOException {
